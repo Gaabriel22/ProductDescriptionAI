@@ -6,7 +6,7 @@ dotenv.config()
 
 const bluesoftApi = axios.create({
   baseURL: `https://erp.bluesoft.com.br/${process.env.BLUESOFT_TENANT}/api/comercial/produtos`,
-  timeout: 10000, // 10s timeout
+  timeout: 10000,
   httpsAgent: new https.Agent({ rejectUnauthorized: true }),
   headers: {
     "X-Customtoken": process.env.BLUESOFT_API_KEY,
@@ -20,8 +20,13 @@ const bluesoftApi = axios.create({
 export const fetchProductTitle = async (
   productKey: string
 ): Promise<string> => {
-  const response = await bluesoftApi.get(`/${productKey}`)
-  return response.data.descricao // Retorna o título (não a descrição completa)
+  try {
+    const response = await bluesoftApi.get(`/${productKey}`)
+    return response.data?.descricao || "Produto sem descrição"
+  } catch (error) {
+    console.error("Erro ao buscar título do produto:", error)
+    throw new Error("Falha ao buscar o título do produto.")
+  }
 }
 
 /**
@@ -29,15 +34,20 @@ export const fetchProductTitle = async (
  */
 export const updateEcommerceDescription = async (
   productKey: string,
-  fullDescription: string // Recebe a descrição completa gerada pela IA
+  fullDescription: string
 ): Promise<void> => {
-  await bluesoftApi.put(`/${productKey}/produtoecommerce`, {
-    descricaoEcommerce: fullDescription, // Campo correto para a descrição longa
-    ecommerces: [
-      {
-        ecommerceKey: 2,
-        lojasIgnoradas: [0],
-      },
-    ],
-  })
+  try {
+    await bluesoftApi.put(`/${productKey}/produtoecommerce`, {
+      descricaoEcommerce: fullDescription,
+      ecommerces: [
+        {
+          ecommerceKey: 2,
+          lojasIgnoradas: [0],
+        },
+      ],
+    })
+  } catch (error) {
+    console.error("Erro ao atualizar descrição do produto:", error)
+    throw new Error("Falha ao atualizar a descrição do produto.")
+  }
 }

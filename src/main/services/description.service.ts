@@ -9,28 +9,29 @@ const openai = new OpenAI({
 
 export class DescriptionService {
   private static readonly ECOMMERCE_PROMPT = `
-  Você é um redator especializado em e-commerce. Gere uma descrição detalhada com base no TÍTULO abaixo.
+Você é um redator especializado em e-commerce. Gere uma descrição detalhada com base no TÍTULO abaixo.
 
-  Regras:
-  - 150-200 palavras
-  - Linguagem persuasiva (2ª pessoa do plural)
-  - 2-3 parágrafos curtos
-  - Inclua palavras-chave do título: "{TITULO_PRODUTO}"
-  - Destaque benefícios, não apenas características
-  - Finalize com CTA (ex: "Compre agora!")
+Regras:
+- 150-200 palavras
+- Linguagem persuasiva (2ª pessoa do plural)
+- 2-3 parágrafos curtos
+- Inclua palavras-chave do título: "{TITULO_PRODUTO}"
+- Destaque benefícios, não apenas características
+- Finalize com CTA (ex: "Compre agora!")
 
-  Título: "{TITULO_PRODUTO}"
-  `
+Título: "{TITULO_PRODUTO}"
+`.trim()
 
   static async generateFullDescription(productTitle: string): Promise<string> {
     try {
-      const prompt = this.ECOMMERCE_PROMPT.replace(
+      const safeTitle = productTitle.replace(/"/g, "'")
+      const prompt = this.ECOMMERCE_PROMPT.replaceAll(
         "{TITULO_PRODUTO}",
-        productTitle
+        safeTitle
       )
 
       const response = await openai.chat.completions.create({
-        model: process.env.OPENAI_MODEL || "gpt-3.5-turbo",
+        model: process.env.OPENAI_MODEL || "gpt-4o-mini",
         messages: [
           {
             role: "system",
@@ -42,7 +43,13 @@ export class DescriptionService {
         max_tokens: 300,
       })
 
-      return response.choices[0]?.message?.content?.trim() || ""
+      const content = response.choices?.[0]?.message?.content?.trim()
+
+      if (!content) {
+        throw new Error("A resposta da IA veio vazia.")
+      }
+
+      return content.replace(/^"|"$/g, "").trim()
     } catch (error) {
       console.error("Erro na geração da descrição:", error)
       throw new Error("Falha ao gerar descrição. Tente novamente.")

@@ -1,24 +1,27 @@
 import React, { useState } from "react"
 import { DescriptionView } from "./DescriptionView"
 
-export const ProductForm = () => {
-  // Estados
+type Etapa = "BUSCA" | "GERACAO" | "CONFIRMACAO"
+type LoadingState = {
+  busca: boolean
+  geracao: boolean
+  envio: boolean
+}
+
+export const ProductForm: React.FC = () => {
   const [productKey, setProductKey] = useState("")
   const [tituloProduto, setTituloProduto] = useState("")
   const [descricaoGerada, setDescricaoGerada] = useState("")
-  const [loading, setLoading] = useState({
+  const [loading, setLoading] = useState<LoadingState>({
     busca: false,
     geracao: false,
     envio: false,
   })
-  const [etapa, setEtapa] = useState<"BUSCA" | "GERACAO" | "CONFIRMACAO">(
-    "BUSCA"
-  )
+  const [etapa, setEtapa] = useState<Etapa>("BUSCA")
   const [error, setError] = useState("")
 
-  // 1. Busca o título no Bluesoft
   const buscarProduto = async () => {
-    setLoading({ ...loading, busca: true })
+    setLoading((prev) => ({ ...prev, busca: true }))
     setError("")
     try {
       const titulo = await window.electronAPI.fetchProductTitle(productKey)
@@ -31,13 +34,12 @@ export const ProductForm = () => {
         }`
       )
     } finally {
-      setLoading({ ...loading, busca: false })
+      setLoading((prev) => ({ ...prev, busca: false }))
     }
   }
 
-  // 2. Gera descrição com OpenAI
   const gerarDescricao = async () => {
-    setLoading({ ...loading, geracao: true })
+    setLoading((prev) => ({ ...prev, geracao: true }))
     setError("")
     try {
       const descricao = await window.electronAPI.generateDescription(
@@ -52,13 +54,12 @@ export const ProductForm = () => {
         }`
       )
     } finally {
-      setLoading({ ...loading, geracao: false })
+      setLoading((prev) => ({ ...prev, geracao: false }))
     }
   }
 
-  // 3. Envia para Bluesoft
   const enviarDescricao = async () => {
-    setLoading({ ...loading, envio: true })
+    setLoading((prev) => ({ ...prev, envio: true }))
     setError("")
     try {
       await window.electronAPI.updateProductDescription(
@@ -74,17 +75,15 @@ export const ProductForm = () => {
         }`
       )
     } finally {
-      setLoading({ ...loading, envio: false })
+      setLoading((prev) => ({ ...prev, envio: false }))
     }
   }
 
-  // 4. Regenera descrição
   const regenerarDescricao = () => {
     setEtapa("GERACAO")
     setDescricaoGerada("")
   }
 
-  // 5. Reseta o fluxo
   const resetarFluxo = () => {
     setProductKey("")
     setTituloProduto("")
@@ -98,7 +97,6 @@ export const ProductForm = () => {
         Gerador de Descrições
       </h1>
 
-      {/* ETAPA 1: Busca */}
       {etapa === "BUSCA" && (
         <div className="space-y-4">
           <input
@@ -121,7 +119,6 @@ export const ProductForm = () => {
         </div>
       )}
 
-      {/* ETAPA 2: Confirmação + Geração */}
       {etapa === "GERACAO" && (
         <div className="space-y-4">
           <p className="font-semibold">Confirme o produto:</p>
@@ -141,7 +138,7 @@ export const ProductForm = () => {
             </button>
             <button
               onClick={resetarFluxo}
-              className="flex-1 p-2 bg-gray-300 rounded hover:bg-gray-400"
+              className="flex-1 p-2 bg-gray-200 rounded hover:bg-gray-300"
             >
               Cancelar
             </button>
@@ -149,7 +146,6 @@ export const ProductForm = () => {
         </div>
       )}
 
-      {/* ETAPA 3: Descrição + Ações (usando DescriptionView) */}
       {etapa === "CONFIRMACAO" && (
         <DescriptionView
           description={descricaoGerada}
@@ -159,7 +155,6 @@ export const ProductForm = () => {
         />
       )}
 
-      {/* Exibição de erros */}
       {error && (
         <div className="p-3 mt-4 bg-red-100 text-red-700 rounded">{error}</div>
       )}

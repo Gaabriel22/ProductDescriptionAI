@@ -1,4 +1,4 @@
-# Gerador de Descrições E-commerce
+# ProductDescriptionAI
 
 Este projeto é uma aplicação **Electron + React + TypeScript** que integra com as APIs da **Bluesoft** e da **OpenAI** para buscar informações de produtos e gerar descrições de e-commerce automaticamente.
 

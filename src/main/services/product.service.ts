@@ -6,29 +6,41 @@ import { DescriptionService } from "./description.service"
 
 export class ProductService {
   /**
-   * Fluxo completo: Título → Descrição
+   * Executa o fluxo completo: busca o título do produto → gera a descrição otimizada
    */
   static async prepareEcommerceData(productKey: string): Promise<{
     tituloProduto: string
     descricaoCompleta: string
   }> {
+    if (!productKey?.trim()) {
+      throw new Error("Código do produto é obrigatório.")
+    }
+
     const tituloProduto = await fetchProductTitle(productKey)
     const descricaoCompleta = await DescriptionService.generateFullDescription(
       tituloProduto
     )
+
     return { tituloProduto, descricaoCompleta }
   }
 
   /**
-   * Envia apenas a descrição gerada para o Bluesoft
+   * Atualiza a descrição do produto na Bluesoft com a descrição gerada
    */
   static async sendEcommerceDescription(
     productKey: string,
     descricaoCompleta: string
   ): Promise<void> {
-    if (descricaoCompleta.length < 50) {
-      throw new Error("Descrição muito curta (mínimo 50 caracteres)")
+    if (!productKey?.trim()) {
+      throw new Error("Código do produto é obrigatório.")
     }
+
+    if (descricaoCompleta.trim().length < 50) {
+      throw new Error(
+        "Descrição muito curta (mínimo de 50 caracteres é recomendado)."
+      )
+    }
+
     await updateEcommerceDescription(productKey, descricaoCompleta)
   }
 }

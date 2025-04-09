@@ -1,4 +1,18 @@
+// src\main\models\product.model.ts
+
+/**
+ * Representa os dados de um produto no contexto do e-commerce,
+ * contendo o título original e a descrição gerada pela IA.
+ */
 export interface ProdutoEcommerce {
-  tituloProduto: string // Mapeia o campo 'descricao' da GET
-  descricaoGerada: string // Para o campo 'descricaoEcommerce' na PUT
+  /**
+   * Título do produto, proveniente da API Bluesoft
+   * (campo 'descricao' no GET /produto)
+   */
+  tituloProduto: string
+
+  /**
+   * Descrição gerada pela IA, destinada ao campo 'descricaoEcommerce' na atualização do produto
+   */
+  descricaoGerada: string
 }
